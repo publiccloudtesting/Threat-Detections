@@ -1,5 +1,4 @@
 🛡️ Detection Rules & Hunting Queries:
-
 This repository contains a collection of custom detection rules and proactive hunting queries designed to identify malicious activity across various platforms. The focus is on high-fidelity alerts that minimize "alert fatigue" while maximizing coverage of the MITRE ATT&CK® framework.
 
 
