@@ -1,0 +1,11 @@
+DeviceNetworkEvents
+| where Timestamp > ago(1h)
+| where RemotePort in (21, 22)
+| where ActionType == "ConnectionSuccess"
+| join kind=inner (
+    DeviceProcessEvents
+    | where Timestamp > ago(1h)
+    | where FileName in~ ("winscp.exe", "filezilla.exe", "psftp.exe", "scp.exe")
+) on DeviceId
+| project Timestamp, DeviceName, AccountName, FileName, RemoteIP, RemotePort, RemoteUrl
+| order by Timestamp desc
