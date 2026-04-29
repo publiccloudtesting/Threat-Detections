@@ -1,0 +1,18 @@
+AuditLogs
+| where Category == "ApplicationManagement"
+| where OperationName in ("Consent to application", "Grant application", "Add service principal")
+| mv-expand TargetResources
+| extend mp = TargetResources.modifiedProperties
+| mv-expand mp
+| where tostring(mp.displayName) == "ConsentContext.OnBehalfOfAll"
+      and tostring(mp.newValue) contains "True"
+| extend
+    AppName = tostring(TargetResources.displayName),
+    AppObjectId = tostring(TargetResources.id),
+    InitiatedBy = coalesce(InitiatedBy.user.userPrincipalName, InitiatedBy.app.appId),
+    IPAddress = tostring(InitiatedBy.user.ipAddress),
+    AdminConsent = tostring(mp.newValue),
+    Operation = OperationName,
+    CorrelationId = CorrelationId
+| summarize arg_max(TimeGenerated, *) by CorrelationId
+| project TimeGenerated, Operation, AppName, AppObjectId, InitiatedBy, IPAddress, AdminConsent, CorrelationId
