@@ -1,0 +1,26 @@
+DeviceProcessEvents
+| where FileName =~ "mshta.exe"
+| extend CommandLineLower = tolower(ProcessCommandLine)
+| where
+    // Suspicious execution paths
+    FolderPath !startswith @"C:\Windows\System32"
+    or FolderPath !startswith @"C:\Windows\SysWOW64"
+    // Remote or script execution
+    or CommandLineLower has_any (
+        "http://", "https://", ".hta", ".js", ".vbs", "javascript:", "vbscript:"
+    )
+    // Suspicious parent processes
+    or InitiatingProcessFileName has_any (
+        "cmd.exe", "powershell.exe", "wscript.exe",
+        "cscript.exe", "msiexec.exe", "winword.exe", "excel.exe"
+    )
+| project
+    TimeGenerated,
+    DeviceName,
+    AccountName,
+    FileName,
+    ProcessCommandLine,
+    FolderPath,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    ReportId
